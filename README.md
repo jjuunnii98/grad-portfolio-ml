@@ -1,310 +1,234 @@
-# 📊 Grad Portfolio — Machine Learning & Survival Analysis
+> 🚀 Production-ready Survival Analysis System with API Deployment
 
-## Overview
-👉 Production-ready survival analysis system with Cox model serving via FastAPI
+# Survival Analysis for Breast Cancer (METABRIC)
 
-This repository represents a **research-oriented machine learning portfolio**  
-focused on **statistical modeling, survival analysis, and interpretable AI**.
+## 🚀 Featured Project
 
-It complements my engineering projects by emphasizing:
-- model interpretability
-- statistical reasoning
-- rigorous evaluation methodologies
+### Survival Analysis API (Production)
 
----
+👉 https://survival-api.onrender.com/docs
 
-## Objective
-To develop a deeper understanding of machine learning models through  
-**statistical foundations and research-driven experimentation**.
-
-This repository focuses on:
-
-- Survival Analysis (time-to-event modeling)
-- Statistical Modeling & Inference
-- Interpretable Machine Learning
-- Reproducible analytical workflows
+- Cox Survival Model
+- FastAPI Inference
+- Docker Deployment
+- Cloud (Render)
 
 ---
 
-# 🚀 Highlight Project
+## 🌐 Live API
 
-## Breast Cancer Survival Analysis (METABRIC)
+👉 https://survival-api.onrender.com/docs  
 
-An end-to-end survival analysis project using the METABRIC breast cancer clinical dataset.
+> 🚀 **Production Deployment (Render)**
+> - Fully containerized with Docker
+> - Real-time inference via FastAPI
+> - Health-monitored cloud service
 
-### Key Components
-- Problem definition and clinical target design  
-- Exploratory Data Analysis (EDA)  
-- Cox-ready feature engineering  
-- Baseline Cox Proportional Hazards modeling  
-- Model evaluation (Concordance Index)  
-- Model refinement with train-validation split  
-- Penalized Cox model comparison  
+### Available Endpoints
 
-### Project Link
-👉 https://github.com/jjuunnii98/grad-portfolio-ml/tree/main/projects/survival-analysis-breast-cancer
-
-### 🔥 Project Highlights
-- Cox Proportional Hazards modeling with clinical interpretability
-- Penalized Cox model to improve generalization and reduce overfitting
-- Fully reproducible pipeline using config-driven architecture
-- Modular ML system (`features → models → pipeline → main.py`)
-- FastAPI-based inference service (`/predict-risk`)
-
-### Run Pipeline
-```bash
-python projects/survival-analysis-breast-cancer/main.py
-```
-
-### Run API
-```bash
-uvicorn src.api.main:app --reload
-```
-
-### API Docs
-```text
-http://127.0.0.1:8000/docs
-```
-
-### Key Result
-- Validation C-index: **0.638 (Penalized Cox)**
-- Improved generalization vs baseline model
-
-### Workflow
-
-```text
-01_problem_definition.ipynb
-→ 02_eda.ipynb
-→ 03_feature_engineering.ipynb
-→ 04_modeling.ipynb
-→ 05_evaluation.ipynb
-→ 06_model_refinement.ipynb
-```
-
-## ▶️ Run the Pipeline
-
-You can execute the full survival analysis pipeline from a single entrypoint.
-
-### What `main.py` does
-- Runs feature engineering from the centralized config
-- Builds the Cox-ready dataset
-- Executes baseline vs penalized Cox model refinement
-- Saves model comparison outputs to configured paths
-
-### Command
-
-```bash
-python projects/survival-analysis-breast-cancer/main.py
-```
-
-### Expected Outputs
-- `data/processed/metabric_clinical_featurized.csv`
-- `data/processed/model_refinement_comparison.csv`
-- `data/processed/model_refinement_coefficients.csv`
+- `GET /health` → API health check  
+- `POST /predict-risk` → Survival risk prediction  
 
 ---
 
-## ▶️ 파이프라인 실행
+## 🧠 Abstract
 
-하나의 entrypoint로 전체 survival analysis 파이프라인을 실행할 수 있다.
+This project presents an end-to-end survival analysis pipeline using the METABRIC breast cancer clinical dataset.
 
-### `main.py`가 수행하는 작업
-- config 기반 feature engineering 실행
-- Cox 모델 입력용 데이터셋 생성
-- baseline Cox vs penalized Cox 비교
-- 결과 CSV 자동 저장
+It integrates statistical survival modeling (Cox Proportional Hazards) with production-level ML engineering, including:
 
-### 실행 명령어
+- Feature engineering pipeline
+- Model training and refinement
+- Evaluation and interpretation
+- FastAPI-based inference service
+- Docker containerization
+- Cloud deployment (Render)
 
-```bash
-python projects/survival-analysis-breast-cancer/main.py
-```
-
-### 생성 결과물
-- `data/processed/metabric_clinical_featurized.csv`
-- `data/processed/model_refinement_comparison.csv`
-- `data/processed/model_refinement_coefficients.csv`
-
+👉 This project demonstrates the transition from research-grade modeling to production-ready AI systems.
 
 ---
 
-## Repository Structure
+## 📌 Overview
+
+This project covers the full ML lifecycle:
+
+1. Problem definition  
+2. Data preprocessing  
+3. Feature engineering  
+4. Survival modeling (Cox PH)  
+5. Model refinement (regularization)  
+6. Evaluation  
+7. API deployment (FastAPI + Docker + Cloud)
+
+👉 Goal:  
+**Bridge classical survival analysis with modern AI engineering and deployment**
+
+---
+
+# 🇰🇷 프로젝트 개요
+
+본 프로젝트는 METABRIC 유방암 임상 데이터를 기반으로  
+생존 분석(Survival Analysis)을 end-to-end로 구현한 프로젝트이다.
+
+단순 분석이 아닌:
+
+- 재현 가능한 ML pipeline  
+- 모델 해석 가능성  
+- API 서비스화  
+- Docker 기반 배포  
+- Cloud (Render) 운영  
+
+까지 포함한 **실무 수준 AI 시스템**을 구축하였다.
+
+---
+
+## 📊 Dataset
+
+- METABRIC Breast Cancer Clinical Dataset  
+- 환자 단위 임상 데이터 + 생존 정보 포함  
+
+### 주요 변수
+
+- Age at Diagnosis  
+- Tumor Size  
+- Tumor Stage  
+- Histologic Grade  
+- ER Status / HER2 Status  
+- Lymph Node Positivity  
+- Survival Time (Months)  
+- Vital Status  
+
+---
+
+## ⚙️ Survival Problem Definition
+
+- Duration (T): Overall Survival (Months)  
+- Event (E):  
+  - 1 → Died of Disease  
+  - 0 → Censored  
+
+👉 Right-censored survival modeling 적용
+
+---
+
+## 🏗️ Methodology
+
+### 1️⃣ Feature Engineering
+
+- 결측값 제거 (`dropna`)
+- 수치형 변환
+- 범주형 one-hot encoding
+- 이상값 제거 (Tumor Stage 0.0)
+
+👉 Final dataset: 
 ```
-projects/
-└── survival-analysis-breast-cancer/
-    ├── README.md
-    ├── configs/
-    ├── data/
-    ├── notebooks/
-    │   ├── 01_problem_definition.ipynb
-    │   ├── 02_eda.ipynb
-    │   ├── 03_feature_engineering.ipynb
-    │   ├── 04_modeling.ipynb
-    │   ├── 05_evaluation.ipynb
-    │   └── 06_model_refinement.ipynb
-    ├── results/
-    └── src/
+Shape: (1353, 12)
 ```
 
 ---
 
-## Methodological Focus
+### 2️⃣ Survival Modeling
 
-This repository emphasizes:
+#### Baseline Cox
+- No regularization
 
-	•	Statistical rigor over black-box performance
-	•	Interpretability over complexity
-	•	Reproducibility over ad-hoc experimentation
-
-
----
-
-## Relationshipto Engineering Projects
-
-This repository complements my main ML engineering projects:
-
-	•	End-to-End ML Analytics System
-	•	Healthcare Risk Prediction API
-	•	Crypto Risk Intelligence Pipeline
-
-While those focus on system implementation, this repository focuses on model understanding and research depth.
+#### Penalized Cox
+- L2 regularization (penalizer)
 
 ---
 
-## Tools & Technologies
-	•	Python
-	•	pandas · NumPy
-	•	scikit-learn
-	•	lifelines (survival analysis)
-	•	statsmodels
-	•	Jupyter Notebook
-	•	Git / GitHub
+### 3️⃣ Evaluation Metrics
+
+- Concordance Index (C-index)
+- Hazard Ratio (exp(coef))
+- Overfitting Gap
 
 ---
 
-## Future Work
-	•	Advanced survival models (time-varying covariates)
-	•	Calibration and model validation techniques
-	•	Penalized and regularized survival models
-	•	Research paper replication studies
-	•	Transition of notebook logic into reusable src/ modules
-	•	API-oriented deployment experiments for survival risk inference
+## 📈 Results
+
+| Model | Train C-index | Valid C-index | Overfitting Gap |
+|------|--------------|--------------|----------------|
+| Penalized Cox | 0.718 | 0.638 | 0.079 |
+| Baseline Cox | 0.716 | 0.629 | 0.086 |
 
 ---
 
-## Author
+## 🔍 Key Insights
 
-### Junyeong Song
-#### AI Engineer | Machine Learning Systems | Survival Analysis
-# 📊 Grad Portfolio — Machine Learning & Survival Analysis
-
-## Overview
-This repository represents a **research-driven machine learning portfolio** focused on:
-
-- Survival Analysis (time-to-event modeling)
-- Statistical Modeling & Inference
-- Interpretable Machine Learning
-- Reproducible ML pipelines
-- Production-level model serving
-
-It bridges the gap between **statistical rigor** and **engineering implementation**, evolving from notebook-based research into a deployable ML system.
+- Penalized Cox improves generalization
+- Overfitting 감소
+- Coefficient 안정성 증가
 
 ---
 
-## 🎯 Objective
+## 🧬 Clinical Interpretation
 
-To build **interpretable and production-ready ML systems** grounded in statistical principles.
+### High Risk Factors (HR > 1)
 
-This repository emphasizes:
+- Tumor Stage ↑ → Hazard 증가  
+- Histologic Grade 3 → 높은 위험  
+- HER2 Positive → 위험 증가  
+- Tumor Size ↑ → 위험 증가  
+- Lymph Node Positivity ↑ → 위험 증가  
 
-- Model interpretability over black-box complexity
-- Reproducibility via config-driven pipelines
-- Transition from research → engineering → deployment
+### Protective Factor (HR < 1)
 
----
-
-# 🚀 Highlight Project
-
-## Breast Cancer Survival Analysis (METABRIC)
-
-An end-to-end survival analysis project using the **METABRIC clinical dataset**, extended into a **production-grade inference system**.
-
-### 🔥 Core Capabilities
-
-- Cox Proportional Hazards modeling (clinical interpretability)
-- Penalized Cox model for generalization improvement
-- Config-driven ML pipeline (YAML-based reproducibility)
-- Modular architecture (`features → models → pipeline → API`)
-- FastAPI inference service with real model serving
-- Pickle-based model artifact (cold-start optimized)
+- ER Positive → 생존율 증가  
 
 ---
 
-## 🧠 Modeling Summary
+## 🔧 Engineering Architecture
 
-| Model            | Train C-index | Validation C-index | Overfitting Gap |
-|-----------------|--------------|-------------------|-----------------|
-| Baseline Cox    | 0.715        | 0.629             | 0.086           |
-| Penalized Cox   | **0.718**    | **0.638**         | **0.079**       |
-
-👉 Penalization improves generalization and reduces overfitting.
-
----
-
-## ⚙️ End-to-End Pipeline
-
-```text
-Raw Clinical Data
-→ Feature Engineering
-→ Cox-ready Dataset
-→ Model Training (Baseline vs Penalized)
-→ Model Evaluation
-→ Model Refinement
-→ Final Model Training
-→ Pickle Artifact Generation
-→ FastAPI Inference Serving
+### Pipeline Flow
+```
+config.yaml
+↓
+build_features.py
+↓
+survival_model.py
+↓
+main.py
+↓
+FastAPI (inference)
 ```
 
 ---
 
-## ▶️ Run the Pipeline
+## 🚀 Run Pipeline
 
 ```bash
-python projects/survival-analysis-breast-cancer/main.py
-```
-
-### What `main.py` does
-
-- Feature engineering from config
-- Model training & validation
-- Penalized Cox refinement
-- Final model training on full dataset
-- **Inference artifact generation (.pkl)**
-
-### Expected Outputs
-
-```text
-data/processed/metabric_clinical_featurized.csv
-data/processed/model_refinement_comparison.csv
-data/processed/model_refinement_coefficients.csv
-artifacts/model/penalized_cox_inference_bundle.pkl
+python main.py
 ```
 
 ---
 
-## 🌐 Run API (Production Inference)
+## 📦 Outputs
+
+- `data/processed/metabric_clinical_featurized.csv`  
+- `data/processed/model_refinement_comparison.csv`  
+- `data/processed/model_refinement_coefficients.csv`  
+- `artifacts/model/penalized_cox_inference_bundle.pkl`  
+
+---
+
+## 🌐 API (FastAPI)
+
+### Run locally
 
 ```bash
 uvicorn src.api.main:app --reload
 ```
 
-### API Docs
+### Swagger
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-### Example Request
+---
+
+## 🧪 Example Request
 
 ```json
 {
@@ -321,97 +245,73 @@ http://127.0.0.1:8000/docs
 }
 ```
 
-👉 Returns risk score + risk group using trained Cox model
+---
+
+## 🧪 Example Response
+
+```json
+{
+  "model_used": "penalized_cox_pickle_inference",
+  "risk_score": 0.786,
+  "risk_group": "Intermediate Risk"
+}
+```
 
 ---
 
-## 🐳 Docker (Deployment Ready)
+## 🐳 Deployment
 
-### Build
-
-```bash
-docker build -t survival-api projects/survival-analysis-breast-cancer
-```
-
-### Run
+### Docker
 
 ```bash
+docker build -t survival-api .
 docker run -p 8000:8000 survival-api
 ```
 
 ---
 
-## 📂 Project Structure
+## ☁️ Cloud Deployment (Render)
+- Docker 기반 배포  
+- FastAPI 서비스 운영  
+- Health check 기반 자동 관리  
 
-```text
-projects/
-└── survival-analysis-breast-cancer/
-    ├── configs/          # YAML-based configuration
-    ├── data/             # Processed datasets
-    ├── artifacts/        # Trained model (.pkl)
-    ├── notebooks/        # Research workflow
-    ├── src/
-    │   ├── features/     # Feature engineering
-    │   ├── models/       # Survival models
-    │   ├── api/          # FastAPI service
-    │   └── utils/        # Config loader
-    ├── main.py           # Pipeline entrypoint
-    └── README.md
-```
+👉 Live API:  
+https://survival-api.onrender.com/docs
 
 ---
 
-## 🔬 Methodological Focus
-
-- Statistical rigor over black-box modeling
-- Survival-specific evaluation (C-index)
-- Explicit overfitting diagnostics
-- Feature-level interpretability (hazard ratios)
+## ⚠️ Limitations
+- External validation 없음  
+- PH assumption 완전 검증 X  
+- Time-dependent 변수 미포함  
 
 ---
 
-## 🔗 Relationship to Engineering Projects
-
-This repository complements engineering-focused systems such as:
-
-- End-to-End ML Pipelines
-- Healthcare Risk Prediction APIs
-- Risk Intelligence Systems (Finance / Crypto)
-
-👉 This repo = **"Model Understanding Layer"**
-👉 Engineering repos = **"System Implementation Layer"**
+## 🔮 Future Work
+- Time-dependent Cox model  
+- Random Survival Forest  
+- DeepSurv / Deep Learning  
+- External dataset validation  
+- MLOps (CI/CD, monitoring)  
 
 ---
 
-## 🛠 Tech Stack
-
-- Python
-- pandas / NumPy
-- scikit-learn
-- lifelines (survival analysis)
-- FastAPI
-- Docker
-- Git / GitHub
-
----
-
-## 🚀 Future Work
-
-- Time-varying Cox models
-- Survival calibration techniques
-- Deep survival models (DeepSurv)
-- CI/CD + cloud deployment
-- Real-time inference pipelines
+## 🧰 Tech Stack
+- Python  
+- pandas / numpy  
+- lifelines  
+- scikit-learn  
+- FastAPI  
+- Docker  
+- Render  
 
 ---
 
 ## 👨‍💻 Author
 
 ### Junyeong Song
-AI Engineer | Survival Analysis | ML Systems
 
----
+#### AI Engineer | Survival Analysis | Healthcare AI
 
-## 💡 One-line Summary
-
-**From statistical survival analysis → to production-ready ML inference system.**
+- GitHub: https://github.com/jjuunnii98  
+- LinkedIn: https://www.linkedin.com/in/jun-yeong-song/  

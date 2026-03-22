@@ -1,5 +1,14 @@
 # Survival Analysis for Breast Cancer (METABRIC)
 
+## 🌐 Live API
+
+👉 https://survival-api.onrender.com/docs  
+
+- `GET /health` → API health check  
+- `POST /predict-risk` → Survival risk prediction  
+
+---
+
 ## Abstract
 
 This project presents a full survival analysis pipeline using the METABRIC breast cancer clinical dataset. We implement Cox Proportional Hazards models to identify clinically interpretable risk factors associated with patient survival.
@@ -9,7 +18,7 @@ The pipeline is designed to be reproducible, modular, and deployable, transition
 ---
 
 ## Overview
-👉 Production-ready survival analysis system with real-time inference via FastAPI and Docker
+👉 Production-ready survival analysis system with real-time inference via FastAPI, Docker, and cloud deployment (Render)
 
 This project builds an end-to-end survival analysis system covering:
 
@@ -199,6 +208,8 @@ python main.py
 
 ## API Deployment (FastAPI)
 
+👉 This API is deployed and publicly accessible via Render.
+
 This project includes a FastAPI service for survival risk prediction using a trained penalized Cox model (production-ready inference).
 
 ### Run the API Server
@@ -240,7 +251,7 @@ http://127.0.0.1:8000/docs
 
 ```json
 {
-  "model_used": "penalized_cox_v1",
+  "model_used": "penalized_cox_pickle_inference",
   "risk_score": 0.786,
   "risk_group": "Intermediate Risk"
 }
@@ -295,6 +306,14 @@ http://127.0.0.1:8000/docs
 
 This container serves the trained Cox model using FastAPI with preloaded inference artifacts.
 
+### ☁️ Cloud Deployment (Render)
+
+- Docker-based deployment
+- FastAPI inference service
+- Health check monitoring
+
+👉 Live API: https://survival-api.onrender.com/docs
+
 ---
 
 ## Limitations
@@ -311,7 +330,7 @@ This container serves the trained Cox model using FastAPI with preloaded inferen
 - Random Survival Forest (RSF)
 - DeepSurv / Neural Survival Models
 - External dataset validation
-- Deployment via FastAPI
+- CI/CD pipeline and monitoring (MLOps)
 
 ---
 
