@@ -53,6 +53,51 @@ An end-to-end survival analysis project using the METABRIC breast cancer clinica
 → 06_model_refinement.ipynb
 ```
 
+## ▶️ Run the Pipeline
+
+You can execute the full survival analysis pipeline from a single entrypoint.
+
+### What `main.py` does
+- Runs feature engineering from the centralized config
+- Builds the Cox-ready dataset
+- Executes baseline vs penalized Cox model refinement
+- Saves model comparison outputs to configured paths
+
+### Command
+
+```bash
+python projects/survival-analysis-breast-cancer/main.py
+```
+
+### Expected Outputs
+- `data/processed/metabric_clinical_featurized.csv`
+- `data/processed/model_refinement_comparison.csv`
+- `data/processed/model_refinement_coefficients.csv`
+
+---
+
+## ▶️ 파이프라인 실행
+
+하나의 entrypoint로 전체 survival analysis 파이프라인을 실행할 수 있다.
+
+### `main.py`가 수행하는 작업
+- config 기반 feature engineering 실행
+- Cox 모델 입력용 데이터셋 생성
+- baseline Cox vs penalized Cox 비교
+- 결과 CSV 자동 저장
+
+### 실행 명령어
+
+```bash
+python projects/survival-analysis-breast-cancer/main.py
+```
+
+### 생성 결과물
+- `data/processed/metabric_clinical_featurized.csv`
+- `data/processed/model_refinement_comparison.csv`
+- `data/processed/model_refinement_coefficients.csv`
+
+
 ---
 
 ## Repository Structure
@@ -86,7 +131,7 @@ This repository emphasizes:
 
 ---
 
-## Relationship to Engineering Projects
+## Relationshipto Engineering Projects
 
 This repository complements my main ML engineering projects:
 
