@@ -42,6 +42,32 @@ An end-to-end survival analysis project using the METABRIC breast cancer clinica
 ### Project Link
 👉 https://github.com/jjuunnii98/grad-portfolio-ml/tree/main/projects/survival-analysis-breast-cancer
 
+### 🔥 Project Highlights
+- Cox Proportional Hazards modeling with clinical interpretability
+- Penalized Cox model to improve generalization and reduce overfitting
+- Fully reproducible pipeline using config-driven architecture
+- Modular ML system (`features → models → pipeline → main.py`)
+- FastAPI-based inference service (`/predict-risk`)
+
+### Run Pipeline
+```bash
+python projects/survival-analysis-breast-cancer/main.py
+```
+
+### Run API
+```bash
+uvicorn src.api.main:app --reload
+```
+
+### API Docs
+```text
+http://127.0.0.1:8000/docs
+```
+
+### Key Result
+- Validation C-index: **0.638 (Penalized Cox)**
+- Improved generalization vs baseline model
+
 ### Workflow
 
 ```text
@@ -167,5 +193,4 @@ While those focus on system implementation, this repository focuses on model und
 ## Author
 
 ### Junyeong Song
-
 #### AI Engineer | Machine Learning Systems | Survival Analysis

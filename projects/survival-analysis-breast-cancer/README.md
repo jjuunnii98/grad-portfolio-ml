@@ -189,6 +189,81 @@ python main.py
 
 ---
 
+## API Deployment (FastAPI)
+
+This project includes a lightweight FastAPI service for survival risk prediction.
+
+### Run the API Server
+
+```bash
+uvicorn src.api.main:app --reload
+```
+
+### Access Swagger UI
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### Available Endpoints
+
+- `GET /health` → API health check
+- `POST /predict-risk` → Predict survival risk
+
+### Example Request
+
+```json
+{
+  "age_at_diagnosis": 55,
+  "lymph_nodes_examined_positive": 2,
+  "tumor_size": 22,
+  "grade_2": 0,
+  "grade_3": 1,
+  "tumor_stage_2": 1,
+  "tumor_stage_3": 0,
+  "tumor_stage_4": 0,
+  "er_status_positive": 1,
+  "her2_status_positive": 0
+}
+```
+
+### Example Response
+
+```json
+{
+  "model_used": "mock_penalized_cox_api_v1",
+  "risk_score": 0.786,
+  "risk_group": "Intermediate Risk"
+}
+```
+
+---
+
+## API 실행 (FastAPI)
+
+본 프로젝트는 survival risk 예측을 위한 FastAPI 서버를 포함한다.
+
+### 서버 실행
+
+```bash
+uvicorn src.api.main:app --reload
+```
+
+### Swagger 접속
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+### 주요 기능
+
+- `/health` → 서버 상태 확인
+- `/predict-risk` → 생존 위험 예측
+
+→ 향후 실제 Cox 모델 기반 inference로 확장 예정
+
+---
+
 ## Limitations
 
 - No external validation dataset
