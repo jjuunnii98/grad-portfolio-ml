@@ -1,249 +1,209 @@
 # Survival Analysis for Breast Cancer (METABRIC)
 
+## Abstract
+
+This project presents a full survival analysis pipeline using the METABRIC breast cancer clinical dataset. We implement Cox Proportional Hazards models to identify clinically interpretable risk factors associated with patient survival.
+
+The pipeline is designed to be reproducible, modular, and deployable, transitioning from exploratory analysis to production-ready modeling.
+
+---
+
 ## Overview
 
-This project builds an end-to-end survival analysis pipeline using the METABRIC breast cancer clinical dataset.
+This project builds an end-to-end survival analysis system covering:
 
-The objective is to identify clinically interpretable risk factors associated with patient survival using Cox Proportional Hazards modeling.
+- Problem definition
+- Exploratory Data Analysis (EDA)
+- Feature engineering
+- Survival modeling (Cox PH)
+- Model refinement (regularization)
+- Evaluation and interpretation
 
-This project demonstrates a complete workflow covering:
-- problem definition
-- exploratory data analysis (EDA)
-- feature engineering
-- survival modeling
-- model evaluation and interpretation
+The goal is to bridge statistical survival analysis with modern ML engineering practices.
 
 ---
 
 # 프로젝트 개요
 
-본 프로젝트는 METABRIC 유방암 임상 데이터를 활용하여  
-생존 분석(Survival Analysis) 파이프라인을 end-to-end로 구축한 것이다.
+본 프로젝트는 METABRIC 유방암 임상 데이터를 기반으로
+생존 분석(Survival Analysis)을 end-to-end로 구현한 프로젝트이다.
 
-Cox Proportional Hazards 모델을 기반으로  
-환자의 생존 위험과 관련된 임상적 요인을 해석 가능한 형태로 도출하는 것을 목표로 한다.
-
-전체 분석 과정은 다음 단계를 포함한다:
-- 문제 정의
-- 데이터 탐색(EDA)
-- feature engineering
-- survival modeling
-- 모델 평가 및 해석
-
----
-
-## Objective
-
-- Build a reproducible survival analysis pipeline
-- Identify statistically significant clinical risk factors
-- Interpret hazard ratios in a clinically meaningful way
-- Provide an interpretable baseline survival model
-
----
-
-# 분석 목표
-
-- 재현 가능한 survival analysis pipeline 구축
-- 통계적으로 유의한 임상 변수 식별
-- hazard ratio를 임상적으로 해석
-- 해석 가능한 baseline survival 모델 구축
+단순 분석을 넘어서 재현 가능한 ML 파이프라인과
+모델 해석까지 포함한 실무 수준 구조를 구축하였다.
 
 ---
 
 ## Dataset
 
 - METABRIC Breast Cancer Clinical Dataset
-- Includes patient-level clinical variables and survival outcomes
+- Patient-level clinical features with survival outcomes
 
-Key variables:
+### Key Variables
+
 - Age at Diagnosis
 - Tumor Size
 - Tumor Stage
 - Histologic Grade
 - ER Status / HER2 Status
 - Lymph Node Positivity
-- Overall Survival Time
+- Overall Survival Time (Months)
 - Vital Status (event)
 
 ---
 
-# 데이터셋
+## Survival Problem Definition
 
-- METABRIC 유방암 임상 데이터
-- 환자 단위 임상 변수 및 생존 정보 포함
+We define the survival task as:
 
-주요 변수:
-- 진단 시 나이
-- 종양 크기
-- 종양 병기 (Tumor Stage)
-- 조직학적 Grade
-- ER / HER2 상태
-- 양성 림프절 수
-- 생존 기간
-- 생존 여부 (event)
+- Duration (T): Overall Survival (Months)
+- Event (E):
+  - 1 → Died of Disease
+  - 0 → Censored
 
----
-
-## Project Structure
-```
-notebooks/
-├── 01_problem_definition.ipynb
-├── 02_eda.ipynb
-├── 03_feature_engineering.ipynb
-├── 04_modeling.ipynb
-└── 05_evaluation.ipynb
-```
-
----
-
-## Workflow
-```
-Raw Data
-→ Problem Definition
-→ EDA
-→ Feature Engineering
-→ Cox PH Modeling
-→ Evaluation & Interpretation
-```
+This formulation enables right-censored survival modeling.
 
 ---
 
 ## Methodology
 
-### 1. Survival Modeling
+### 1. Feature Engineering
 
-- Model: Cox Proportional Hazards
-- Target:
-  - time = Overall Survival (Months)
-  - event = death indicator
-
-### 2. Feature Engineering
-
-- Missing value handling (dropna)
-- Categorical encoding (one-hot encoding)
+- Missing value removal (`dropna`)
+- Numeric coercion
+- One-hot encoding of categorical variables
 - Removal of rare/ambiguous categories (e.g., Tumor Stage 0.0)
-- Construction of Cox-ready dataset
 
-### 3. Evaluation
+Final dataset:
+- Shape: (1353, 12)
+- Cox-ready format
 
+---
+
+### 2. Survival Modeling
+
+We implement two Cox models:
+
+#### Baseline Cox
+- No regularization
+
+#### Penalized Cox
+- L2 regularization (penalizer)
+
+---
+
+### 3. Evaluation Metrics
+
+- Concordance Index (C-index)
 - Hazard Ratio (exp(coef))
-- 95% Confidence Intervals
-- Statistical significance (p-value)
-- Concordance Index
+- Overfitting Gap (train - validation)
 
 ---
 
-# 분석 방법
+## Results
 
-### 1. 생존 모델
+### Model Performance
 
-- 모델: Cox Proportional Hazards
-- 목표 변수:
-  - time: 생존 기간
-  - event: 사망 여부
+| Model | Train C-index | Valid C-index | Overfitting Gap |
+|------|--------------|--------------|----------------|
+| Penalized Cox | 0.718 | 0.638 | 0.079 |
+| Baseline Cox | 0.716 | 0.629 | 0.086 |
 
-### 2. Feature Engineering
+### Key Insight
 
-- 결측치 제거
-- 범주형 변수 one-hot encoding
-- 희귀/모호한 범주 제거 (예: Tumor Stage 0.0)
-- Cox 모델 입력 데이터셋 구성
-
-### 3. 평가 방법
-
-- Hazard Ratio
-- 95% 신뢰구간
-- p-value
-- Concordance Index
+- Penalized Cox improves generalization
+- Reduces overfitting gap
+- Produces more stable coefficients
 
 ---
 
-## Key Results
+## Clinical Interpretation
 
-### Significant Risk Factors
+### High-Risk Factors (HR > 1)
 
-The model identified several clinically meaningful risk factors:
+- Tumor Stage ↑ → Hazard ↑
+- Histologic Grade 3 → High risk
+- HER2 Positive → Increased hazard
+- Tumor Size ↑ → Increased risk
+- Lymph Node Positivity ↑ → Increased risk
 
-- Tumor Stage (higher stage → higher risk)
-- Histologic Grade (Grade 3 → higher risk)
-- HER2 Positive → increased hazard
-- Tumor Size → increased hazard
-- Lymph Node Positivity → increased hazard
+### Protective Factor (HR < 1)
 
-### Protective Factor
-
-- ER Positive → associated with lower hazard
+- ER Positive → Reduced hazard
 
 ---
 
-# 주요 결과
+## Coefficient Stability (Regularization Effect)
 
-다음과 같은 임상적으로 의미 있는 위험 요인이 확인되었다:
+Penalized Cox reduces extreme coefficients:
 
-- 종양 병기 증가 → 위험 증가
-- Grade 3 → 위험 증가
-- HER2 양성 → 위험 증가
-- 종양 크기 증가 → 위험 증가
-- 양성 림프절 수 증가 → 위험 증가
+Example:
 
-보호 효과:
-- ER 양성 → 위험 감소
+- Grade 2: 0.52 → 0.02
+- Grade 3: 0.82 → 0.32
+
+→ Improves robustness and interpretability
 
 ---
 
-## Interpretation
+## Project Structure
 
-- Hazard Ratio > 1 → Increased risk
-- Hazard Ratio < 1 → Protective effect
-- Confidence intervals used for robustness
-- Results align with known clinical patterns
+```
+projects/survival-analysis-breast-cancer/
+├── notebooks/
+├── src/
+│   ├── features/
+│   ├── models/
+│   └── utils/
+├── configs/
+├── data/
+└── main.py
+```
 
 ---
 
-# 해석
+## Pipeline Architecture
 
-- HR > 1 → 위험 증가
-- HR < 1 → 보호 효과
-- 신뢰구간을 통해 안정성 확인
-- 결과는 임상적으로 타당한 방향성과 일치
+```
+config.yaml
+   ↓
+build_features.py
+   ↓
+survival_model.py
+   ↓
+main.py
+```
+
+---
+
+## Run the Pipeline
+
+```bash
+python main.py
+```
+
+### Outputs
+
+- `data/processed/metabric_clinical_featurized.csv`
+- `data/processed/model_refinement_comparison.csv`
+- `data/processed/model_refinement_coefficients.csv`
 
 ---
 
 ## Limitations
 
-- No external validation
-- Model evaluated on same dataset
-- Small subgroup sizes for some categories
-- Proportional hazards assumptions not fully optimized
-
----
-
-# 한계점
-
-- 외부 검증 미실시
-- 동일 데이터셋에서 평가
-- 일부 subgroup 표본 수 부족
-- PH 가정 최적화 미완료
+- No external validation dataset
+- Proportional hazards assumption not fully tested
+- Static features only (no time-dependent covariates)
 
 ---
 
 ## Future Work
 
-- Train / validation split
-- Regularized Cox models
-- Random Survival Forest / DeepSurv comparison
-- Time-dependent evaluation
+- Time-dependent Cox model
+- Random Survival Forest (RSF)
+- DeepSurv / Neural Survival Models
 - External dataset validation
-
----
-
-# 향후 개선 방향
-
-- train / validation 분리
-- 정규화 Cox 모델
-- RSF / DeepSurv 비교
-- 시간 기반 평가
-- 외부 데이터 검증
+- Deployment via FastAPI
 
 ---
 
@@ -252,13 +212,12 @@ The model identified several clinically meaningful risk factors:
 - Python
 - pandas / numpy
 - lifelines
+- scikit-learn
 - matplotlib / seaborn
-- Jupyter Notebook
 
 ---
 
 ## Author
 
-Junyeong Song  
-
-AI Engineer | Survival Analysis | Healthcare AI
+### Junyeong Song  
+#### AI Engineer | Survival Analysis | Healthcare AI
