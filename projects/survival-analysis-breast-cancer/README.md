@@ -9,6 +9,7 @@ The pipeline is designed to be reproducible, modular, and deployable, transition
 ---
 
 ## Overview
+👉 Production-ready survival analysis system with real-time inference via FastAPI and Docker
 
 This project builds an end-to-end survival analysis system covering:
 
@@ -29,7 +30,7 @@ The goal is to bridge statistical survival analysis with modern ML engineering p
 생존 분석(Survival Analysis)을 end-to-end로 구현한 프로젝트이다.
 
 단순 분석을 넘어서 재현 가능한 ML 파이프라인과
-모델 해석까지 포함한 실무 수준 구조를 구축하였다.
+모델 해석까지 포함한 실무 수준의 ML 시스템 구조를 구축하였다.
 
 ---
 
@@ -153,9 +154,11 @@ projects/survival-analysis-breast-cancer/
 ├── src/
 │   ├── features/
 │   ├── models/
+│   ├── api/
 │   └── utils/
 ├── configs/
 ├── data/
+├── artifacts/        # trained model (.pkl)
 └── main.py
 ```
 
@@ -171,6 +174,10 @@ build_features.py
 survival_model.py
    ↓
 main.py
+   ↓
+pickle artifact (.pkl)
+   ↓
+FastAPI inference
 ```
 
 ---
@@ -186,12 +193,13 @@ python main.py
 - `data/processed/metabric_clinical_featurized.csv`
 - `data/processed/model_refinement_comparison.csv`
 - `data/processed/model_refinement_coefficients.csv`
+- `artifacts/model/penalized_cox_inference_bundle.pkl`
 
 ---
 
 ## API Deployment (FastAPI)
 
-This project includes a lightweight FastAPI service for survival risk prediction.
+This project includes a FastAPI service for survival risk prediction using a trained penalized Cox model (production-ready inference).
 
 ### Run the API Server
 
@@ -228,10 +236,11 @@ http://127.0.0.1:8000/docs
 ```
 
 ### Example Response
+👉 Risk score is computed using partial hazard from Cox model and mapped to risk groups via quantile thresholds
 
 ```json
 {
-  "model_used": "mock_penalized_cox_api_v1",
+  "model_used": "penalized_cox_v1",
   "risk_score": 0.786,
   "risk_group": "Intermediate Risk"
 }
@@ -260,7 +269,31 @@ http://127.0.0.1:8000/docs
 - `/health` → 서버 상태 확인
 - `/predict-risk` → 생존 위험 예측
 
-→ 향후 실제 Cox 모델 기반 inference로 확장 예정
+→ 현재는 학습된 Cox 모델(pickle artifact)을 기반으로 실제 inference 수행
+
+---
+
+## 🐳 Docker Deployment
+
+### Build
+
+```bash
+docker build -t survival-api .
+```
+
+### Run
+
+```bash
+docker run -p 8000:8000 survival-api
+```
+
+### Access API
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+This container serves the trained Cox model using FastAPI with preloaded inference artifacts.
 
 ---
 
