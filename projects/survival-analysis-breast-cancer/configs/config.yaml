@@ -1,0 +1,90 @@
+
+
+# ==============================
+# Survival Analysis Config
+# ==============================
+
+# ------------------------------
+# Data Paths
+# ------------------------------
+data:
+  raw_data_path: "data/raw/brca_metabric_clinical_data.tsv"
+  processed_data_path: "data/processed/metabric_clinical_featurized.csv"
+
+# ------------------------------
+# Target Definition
+# ------------------------------
+target:
+  duration_col: "time"
+  event_col: "event"
+  duration_source_col: "Overall Survival (Months)"
+  event_source_col: "Patient's Vital Status"
+  event_definition: "Died of Disease = 1, else 0"
+
+# ------------------------------
+# Feature Engineering
+# ------------------------------
+features:
+  selected_features:
+    - "Age at Diagnosis"
+    - "Neoplasm Histologic Grade"
+    - "Tumor Stage"
+    - "ER Status"
+    - "HER2 Status"
+    - "Lymph nodes examined positive"
+    - "Tumor Size"
+
+  categorical_cols:
+    - "Neoplasm Histologic Grade"
+    - "Tumor Stage"
+    - "ER Status"
+    - "HER2 Status"
+
+  numeric_cols:
+    - "Age at Diagnosis"
+    - "Lymph nodes examined positive"
+    - "Tumor Size"
+
+  drop_strategy: "dropna"
+  remove_rare_stage_zero: true
+
+# ------------------------------
+# Train / Validation Split
+# ------------------------------
+split:
+  test_size: 0.2
+  random_state: 42
+  stratify_by: "event"
+
+# ------------------------------
+# Modeling
+# ------------------------------
+model:
+  type: "cox_ph"
+
+  baseline:
+    penalizer: 0.0
+
+  penalized:
+    penalizer: 0.1
+
+# ------------------------------
+# Evaluation
+# ------------------------------
+evaluation:
+  primary_metric: "concordance_index"
+  compare_models: true
+  compute_overfitting_gap: true
+
+# ------------------------------
+# Output Paths
+# ------------------------------
+output:
+  model_performance_path: "data/processed/model_refinement_comparison.csv"
+  coefficient_comparison_path: "data/processed/model_refinement_coefficients.csv"
+
+# ------------------------------
+# Reproducibility
+# ------------------------------
+reproducibility:
+  random_seed: 42

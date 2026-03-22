@@ -1,11 +1,11 @@
-
-
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Iterable
+from typing import Iterable, Any
 
 import pandas as pd
+
+from utils.config import load_config
 
 
 DEFAULT_DURATION_SOURCE_COL = "Overall Survival (Months)"
@@ -213,6 +213,7 @@ def build_cox_ready_dataset(
     selected_features: Iterable[str] = DEFAULT_SELECTED_FEATURES,
     categorical_cols: Iterable[str] = DEFAULT_CATEGORICAL_COLS,
     numeric_cols: Iterable[str] = DEFAULT_NUMERIC_COLS,
+    remove_stage_zero: bool = True,
 ) -> pd.DataFrame:
     """
     Full feature engineering pipeline for Cox-ready METABRIC clinical data.
@@ -222,7 +223,7 @@ def build_cox_ready_dataset(
     2. Select modeling columns
     3. Drop missing rows
     4. Clean categorical columns
-    5. Remove rare Tumor Stage == '0.0'
+    5. Remove rare Tumor Stage == '0.0' if configured
     6. Clean numeric columns
     7. Drop missing rows again after numeric coercion
     8. One-hot encode categorical columns
@@ -232,7 +233,10 @@ def build_cox_ready_dataset(
     df = select_modeling_features(df, selected_features=selected_features)
     df = drop_missing_rows(df)
     df = clean_categorical_columns(df, categorical_cols=categorical_cols)
-    df = remove_rare_tumor_stage_zero(df)
+
+    if remove_stage_zero:
+        df = remove_rare_tumor_stage_zero(df)
+
     df = clean_numeric_columns(
         df,
         numeric_cols=numeric_cols,
@@ -257,12 +261,65 @@ def save_featurized_dataset(
     return path
 
 
+def resolve_project_paths(config: dict[str, Any], config_path: str | Path) -> tuple[Path, Path]:
+    """
+    Resolve raw and processed data paths relative to the project root.
+
+    Args:
+        config: Parsed YAML config.
+        config_path: Path to config.yaml.
+
+    Returns:
+        Tuple of (raw_data_path, processed_data_path).
+    """
+    config_file = Path(config_path).resolve()
+    project_root = config_file.parent.parent
+
+    raw_data_path = project_root / config["data"]["raw_data_path"]
+    processed_data_path = project_root / config["data"]["processed_data_path"]
+
+    return raw_data_path, processed_data_path
+
+
+def run_feature_pipeline_from_config(
+    config_path: str | Path,
+) -> pd.DataFrame:
+    """
+    End-to-end feature engineering pipeline driven by config.yaml.
+
+    Args:
+        config_path: Path to YAML config.
+
+    Returns:
+        Final featurized DataFrame.
+    """
+    config = load_config(config_path)
+    raw_data_path, processed_data_path = resolve_project_paths(config, config_path)
+
+    selected_features = config["features"]["selected_features"]
+    categorical_cols = config["features"]["categorical_cols"]
+    numeric_cols = config["features"]["numeric_cols"]
+    remove_stage_zero = config["features"]["remove_rare_stage_zero"]
+
+    raw_df = load_raw_clinical_data(raw_data_path)
+    featurized_df = build_cox_ready_dataset(
+        raw_df=raw_df,
+        selected_features=selected_features,
+        categorical_cols=categorical_cols,
+        numeric_cols=numeric_cols,
+        remove_stage_zero=remove_stage_zero,
+    )
+    save_featurized_dataset(featurized_df, processed_data_path)
+
+    return featurized_df
+
+
 def run_feature_pipeline(
     raw_file_path: str | Path,
     output_path: str | Path,
 ) -> pd.DataFrame:
     """
-    End-to-end feature engineering pipeline:
+    Backward-compatible end-to-end feature engineering pipeline:
     raw TSV -> Cox-ready CSV.
 
     Returns:
