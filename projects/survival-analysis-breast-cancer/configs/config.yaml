@@ -82,6 +82,7 @@ evaluation:
 output:
   model_performance_path: "data/processed/model_refinement_comparison.csv"
   coefficient_comparison_path: "data/processed/model_refinement_coefficients.csv"
+  model_artifact_path: "artifacts/model/penalized_cox_inference_bundle.pkl"
 
 # ------------------------------
 # Reproducibility

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import pickle
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -25,19 +26,12 @@ class SurvivalSplit:
 def load_featurized_data(file_path: str | Path) -> pd.DataFrame:
     """
     Load the Cox-ready featurized survival dataset.
-
-    Args:
-        file_path: Path to the processed CSV file.
-
-    Returns:
-        pd.DataFrame: Loaded dataset.
     """
     path = Path(file_path)
     if not path.exists():
         raise FileNotFoundError(f"Dataset not found: {path}")
 
     df = pd.read_csv(path)
-
     if df.empty:
         raise ValueError("Loaded dataset is empty.")
 
@@ -52,15 +46,6 @@ def split_survival_data(
 ) -> SurvivalSplit:
     """
     Split survival data into train and validation sets with event stratification.
-
-    Args:
-        df: Cox-ready dataset.
-        test_size: Validation ratio.
-        random_state: Seed for reproducibility.
-        event_col: Event indicator column.
-
-    Returns:
-        SurvivalSplit: Dataclass containing train and validation DataFrames.
     """
     if event_col not in df.columns:
         raise KeyError(f"Missing required event column: {event_col}")
@@ -83,15 +68,6 @@ def fit_baseline_cox(
 ) -> CoxPHFitter:
     """
     Fit a baseline Cox Proportional Hazards model.
-
-    Args:
-        train_df: Training dataset.
-        duration_col: Survival duration column.
-        event_col: Event indicator column.
-        penalizer: Penalizer value for baseline model.
-
-    Returns:
-        CoxPHFitter: Fitted Cox model.
     """
     cph = CoxPHFitter(penalizer=penalizer)
     cph.fit(train_df, duration_col=duration_col, event_col=event_col)
@@ -106,15 +82,6 @@ def fit_penalized_cox(
 ) -> CoxPHFitter:
     """
     Fit a penalized Cox model.
-
-    Args:
-        train_df: Training dataset.
-        penalizer: Regularization strength.
-        duration_col: Survival duration column.
-        event_col: Event indicator column.
-
-    Returns:
-        CoxPHFitter: Fitted penalized Cox model.
     """
     cph = CoxPHFitter(penalizer=penalizer)
     cph.fit(train_df, duration_col=duration_col, event_col=event_col)
@@ -127,13 +94,6 @@ def evaluate_concordance(
 ) -> float:
     """
     Evaluate validation concordance index.
-
-    Args:
-        model: Fitted Cox model.
-        valid_df: Validation dataset.
-
-    Returns:
-        float: Validation concordance index.
     """
     return float(model.score(valid_df, scoring_method="concordance_index"))
 
@@ -146,15 +106,6 @@ def build_model_performance_table(
 ) -> pd.DataFrame:
     """
     Build a comparison table for baseline vs penalized Cox models.
-
-    Args:
-        baseline_model: Fitted baseline Cox model.
-        penalized_model: Fitted penalized Cox model.
-        baseline_valid_cindex: Validation concordance for baseline model.
-        penalized_valid_cindex: Validation concordance for penalized model.
-
-    Returns:
-        pd.DataFrame: Sorted performance comparison table.
     """
     model_performance = pd.DataFrame(
         {
@@ -185,12 +136,6 @@ def build_model_performance_table(
 def get_best_model_row(model_performance: pd.DataFrame) -> pd.Series:
     """
     Select the best model based on validation concordance.
-
-    Args:
-        model_performance: Model comparison table.
-
-    Returns:
-        pd.Series: Best model row.
     """
     if model_performance.empty:
         raise ValueError("Model performance table is empty.")
@@ -204,13 +149,6 @@ def build_coefficient_comparison(
 ) -> pd.DataFrame:
     """
     Build coefficient comparison table between baseline and penalized Cox models.
-
-    Args:
-        baseline_model: Fitted baseline Cox model.
-        penalized_model: Fitted penalized Cox model.
-
-    Returns:
-        pd.DataFrame: Feature-wise coefficient comparison.
     """
     baseline_summary = baseline_model.summary
     penalized_summary = penalized_model.summary.reindex(baseline_summary.index)
@@ -236,15 +174,6 @@ def save_model_outputs(
 ) -> tuple[Path, Path]:
     """
     Save model refinement outputs to CSV.
-
-    Args:
-        model_performance: Comparison table for model performance.
-        comparison_df: Coefficient comparison table.
-        model_performance_path: Output path for performance CSV.
-        coefficient_comparison_path: Output path for coefficient CSV.
-
-    Returns:
-        tuple[Path, Path]: Saved file paths.
     """
     performance_path = Path(model_performance_path)
     coefficient_path = Path(coefficient_comparison_path)
@@ -258,22 +187,65 @@ def save_model_outputs(
     return performance_path, coefficient_path
 
 
+def save_pickle_artifact(obj: Any, artifact_path: str | Path) -> Path:
+    """
+    Save a Python object as a pickle artifact.
+    """
+    path = Path(artifact_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(path, "wb") as f:
+        pickle.dump(obj, f)
+
+    return path
+
+
+def load_pickle_artifact(artifact_path: str | Path) -> Any:
+    """
+    Load a Python object from a pickle artifact.
+    """
+    path = Path(artifact_path)
+    if not path.exists():
+        raise FileNotFoundError(f"Artifact not found: {path}")
+
+    with open(path, "rb") as f:
+        return pickle.load(f)
+
+
+def build_inference_bundle(
+    df: pd.DataFrame,
+    model: CoxPHFitter,
+    duration_col: str = DEFAULT_DURATION_COL,
+    event_col: str = DEFAULT_EVENT_COL,
+) -> dict[str, Any]:
+    """
+    Build a production inference bundle containing the trained model,
+    feature columns, and precomputed risk cutoffs.
+    """
+    feature_columns = [col for col in df.columns if col not in [duration_col, event_col]]
+    feature_df = df[feature_columns].copy()
+    train_scores = model.predict_partial_hazard(feature_df).astype(float)
+
+    low_cutoff = float(train_scores.quantile(0.33))
+    high_cutoff = float(train_scores.quantile(0.67))
+
+    return {
+        "model": model,
+        "feature_columns": feature_columns,
+        "low_cutoff": low_cutoff,
+        "high_cutoff": high_cutoff,
+        "duration_col": duration_col,
+        "event_col": event_col,
+        "training_rows": int(df.shape[0]),
+    }
+
+
 def resolve_project_paths(
     config: dict[str, Any],
     config_path: str | Path,
-) -> tuple[Path, Path, Path]:
+) -> tuple[Path, Path, Path, Path]:
     """
-    Resolve processed data and output paths relative to the project root.
-
-    Args:
-        config: Parsed YAML config.
-        config_path: Path to config.yaml.
-
-    Returns:
-        tuple[Path, Path, Path]:
-            - processed data path
-            - model performance output path
-            - coefficient comparison output path
+    Resolve processed data and output/artifact paths relative to the project root.
     """
     config_file = Path(config_path).resolve()
     project_root = config_file.parent.parent
@@ -283,8 +255,14 @@ def resolve_project_paths(
     coefficient_comparison_path = (
         project_root / config["output"]["coefficient_comparison_path"]
     )
+    model_artifact_path = project_root / config["output"]["model_artifact_path"]
 
-    return processed_data_path, model_performance_path, coefficient_comparison_path
+    return (
+        processed_data_path,
+        model_performance_path,
+        coefficient_comparison_path,
+        model_artifact_path,
+    )
 
 
 def run_refinement_pipeline(
@@ -298,23 +276,6 @@ def run_refinement_pipeline(
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     End-to-end refinement pipeline.
-
-    Flow:
-    load data -> split -> fit baseline/penalized -> compare models.
-
-    Args:
-        file_path: Path to featurized dataset.
-        test_size: Validation split ratio.
-        random_state: Random seed.
-        penalizer: Penalizer strength for penalized Cox model.
-        duration_col: Survival duration column.
-        event_col: Event indicator column.
-        baseline_penalizer: Penalizer for baseline Cox model.
-
-    Returns:
-        tuple[pd.DataFrame, pd.DataFrame]:
-            - model_performance table
-            - coefficient comparison table
     """
     df = load_featurized_data(file_path)
     split_data = split_survival_data(
@@ -361,25 +322,74 @@ def run_refinement_pipeline(
     return model_performance, comparison_df
 
 
+def train_final_penalized_model(
+    file_path: str | Path,
+    penalizer: float = 0.1,
+    duration_col: str = DEFAULT_DURATION_COL,
+    event_col: str = DEFAULT_EVENT_COL,
+) -> CoxPHFitter:
+    """
+    Train the final penalized Cox model on the full processed dataset.
+    """
+    df = load_featurized_data(file_path)
+    model = fit_penalized_cox(
+        df,
+        penalizer=penalizer,
+        duration_col=duration_col,
+        event_col=event_col,
+    )
+    return model
+
+
+def train_and_save_inference_bundle_from_config(
+    config_path: str | Path,
+) -> Path:
+    """
+    Train the final penalized Cox model on full data and save a production
+    inference bundle as a pickle artifact.
+    """
+    config = load_config(config_path)
+    (
+        processed_data_path,
+        _,
+        _,
+        model_artifact_path,
+    ) = resolve_project_paths(config, config_path)
+
+    duration_col = config["target"]["duration_col"]
+    event_col = config["target"]["event_col"]
+    penalized_penalizer = config["model"]["penalized"]["penalizer"]
+
+    df = load_featurized_data(processed_data_path)
+    model = fit_penalized_cox(
+        df,
+        penalizer=penalized_penalizer,
+        duration_col=duration_col,
+        event_col=event_col,
+    )
+    inference_bundle = build_inference_bundle(
+        df=df,
+        model=model,
+        duration_col=duration_col,
+        event_col=event_col,
+    )
+
+    save_pickle_artifact(inference_bundle, model_artifact_path)
+    return model_artifact_path
+
+
 def run_refinement_pipeline_from_config(
     config_path: str | Path,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     End-to-end refinement pipeline driven by config.yaml.
-
-    Args:
-        config_path: Path to YAML config.
-
-    Returns:
-        tuple[pd.DataFrame, pd.DataFrame]:
-            - model_performance table
-            - coefficient comparison table
     """
     config = load_config(config_path)
     (
         processed_data_path,
         model_performance_path,
         coefficient_comparison_path,
+        _,
     ) = resolve_project_paths(config, config_path)
 
     duration_col = config["target"]["duration_col"]
