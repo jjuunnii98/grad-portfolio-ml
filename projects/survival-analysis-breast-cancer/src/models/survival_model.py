@@ -2,11 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Tuple
+from typing import Any
 
 import pandas as pd
 from lifelines import CoxPHFitter
 from sklearn.model_selection import train_test_split
+
+from utils.config import load_config
 
 
 DEFAULT_RANDOM_STATE = 42
@@ -77,6 +79,7 @@ def fit_baseline_cox(
     train_df: pd.DataFrame,
     duration_col: str = DEFAULT_DURATION_COL,
     event_col: str = DEFAULT_EVENT_COL,
+    penalizer: float = 0.0,
 ) -> CoxPHFitter:
     """
     Fit a baseline Cox Proportional Hazards model.
@@ -85,11 +88,12 @@ def fit_baseline_cox(
         train_df: Training dataset.
         duration_col: Survival duration column.
         event_col: Event indicator column.
+        penalizer: Penalizer value for baseline model.
 
     Returns:
         CoxPHFitter: Fitted Cox model.
     """
-    cph = CoxPHFitter()
+    cph = CoxPHFitter(penalizer=penalizer)
     cph.fit(train_df, duration_col=duration_col, event_col=event_col)
     return cph
 
@@ -152,17 +156,19 @@ def build_model_performance_table(
     Returns:
         pd.DataFrame: Sorted performance comparison table.
     """
-    model_performance = pd.DataFrame({
-        "model": ["baseline_cox", "penalized_cox"],
-        "train_cindex": [
-            baseline_model.concordance_index_,
-            penalized_model.concordance_index_,
-        ],
-        "valid_cindex": [
-            baseline_valid_cindex,
-            penalized_valid_cindex,
-        ],
-    })
+    model_performance = pd.DataFrame(
+        {
+            "model": ["baseline_cox", "penalized_cox"],
+            "train_cindex": [
+                baseline_model.concordance_index_,
+                penalized_model.concordance_index_,
+            ],
+            "valid_cindex": [
+                baseline_valid_cindex,
+                penalized_valid_cindex,
+            ],
+        }
+    )
 
     model_performance["overfitting_gap"] = (
         model_performance["train_cindex"] - model_performance["valid_cindex"]
@@ -209,15 +215,76 @@ def build_coefficient_comparison(
     baseline_summary = baseline_model.summary
     penalized_summary = penalized_model.summary.reindex(baseline_summary.index)
 
-    comparison_df = pd.DataFrame({
-        "feature": baseline_summary.index,
-        "baseline_coef": baseline_summary["coef"].values,
-        "baseline_hr": baseline_summary["exp(coef)"].values,
-        "penalized_coef": penalized_summary["coef"].values,
-        "penalized_hr": penalized_summary["exp(coef)"].values,
-    })
+    comparison_df = pd.DataFrame(
+        {
+            "feature": baseline_summary.index,
+            "baseline_coef": baseline_summary["coef"].values,
+            "baseline_hr": baseline_summary["exp(coef)"].values,
+            "penalized_coef": penalized_summary["coef"].values,
+            "penalized_hr": penalized_summary["exp(coef)"].values,
+        }
+    )
 
     return comparison_df
+
+
+def save_model_outputs(
+    model_performance: pd.DataFrame,
+    comparison_df: pd.DataFrame,
+    model_performance_path: str | Path,
+    coefficient_comparison_path: str | Path,
+) -> tuple[Path, Path]:
+    """
+    Save model refinement outputs to CSV.
+
+    Args:
+        model_performance: Comparison table for model performance.
+        comparison_df: Coefficient comparison table.
+        model_performance_path: Output path for performance CSV.
+        coefficient_comparison_path: Output path for coefficient CSV.
+
+    Returns:
+        tuple[Path, Path]: Saved file paths.
+    """
+    performance_path = Path(model_performance_path)
+    coefficient_path = Path(coefficient_comparison_path)
+
+    performance_path.parent.mkdir(parents=True, exist_ok=True)
+    coefficient_path.parent.mkdir(parents=True, exist_ok=True)
+
+    model_performance.to_csv(performance_path, index=False)
+    comparison_df.to_csv(coefficient_path, index=False)
+
+    return performance_path, coefficient_path
+
+
+def resolve_project_paths(
+    config: dict[str, Any],
+    config_path: str | Path,
+) -> tuple[Path, Path, Path]:
+    """
+    Resolve processed data and output paths relative to the project root.
+
+    Args:
+        config: Parsed YAML config.
+        config_path: Path to config.yaml.
+
+    Returns:
+        tuple[Path, Path, Path]:
+            - processed data path
+            - model performance output path
+            - coefficient comparison output path
+    """
+    config_file = Path(config_path).resolve()
+    project_root = config_file.parent.parent
+
+    processed_data_path = project_root / config["data"]["processed_data_path"]
+    model_performance_path = project_root / config["output"]["model_performance_path"]
+    coefficient_comparison_path = (
+        project_root / config["output"]["coefficient_comparison_path"]
+    )
+
+    return processed_data_path, model_performance_path, coefficient_comparison_path
 
 
 def run_refinement_pipeline(
@@ -225,9 +292,14 @@ def run_refinement_pipeline(
     test_size: float = 0.2,
     random_state: int = DEFAULT_RANDOM_STATE,
     penalizer: float = 0.1,
-) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    duration_col: str = DEFAULT_DURATION_COL,
+    event_col: str = DEFAULT_EVENT_COL,
+    baseline_penalizer: float = 0.0,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
     """
-    End-to-end refinement pipeline:
+    End-to-end refinement pipeline.
+
+    Flow:
     load data -> split -> fit baseline/penalized -> compare models.
 
     Args:
@@ -235,9 +307,12 @@ def run_refinement_pipeline(
         test_size: Validation split ratio.
         random_state: Random seed.
         penalizer: Penalizer strength for penalized Cox model.
+        duration_col: Survival duration column.
+        event_col: Event indicator column.
+        baseline_penalizer: Penalizer for baseline Cox model.
 
     Returns:
-        Tuple[pd.DataFrame, pd.DataFrame]:
+        tuple[pd.DataFrame, pd.DataFrame]:
             - model_performance table
             - coefficient comparison table
     """
@@ -246,12 +321,20 @@ def run_refinement_pipeline(
         df=df,
         test_size=test_size,
         random_state=random_state,
+        event_col=event_col,
     )
 
-    baseline_model = fit_baseline_cox(split_data.train_df)
+    baseline_model = fit_baseline_cox(
+        split_data.train_df,
+        duration_col=duration_col,
+        event_col=event_col,
+        penalizer=baseline_penalizer,
+    )
     penalized_model = fit_penalized_cox(
         split_data.train_df,
         penalizer=penalizer,
+        duration_col=duration_col,
+        event_col=event_col,
     )
 
     baseline_valid_cindex = evaluate_concordance(
@@ -273,6 +356,54 @@ def run_refinement_pipeline(
     comparison_df = build_coefficient_comparison(
         baseline_model=baseline_model,
         penalized_model=penalized_model,
+    )
+
+    return model_performance, comparison_df
+
+
+def run_refinement_pipeline_from_config(
+    config_path: str | Path,
+) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    End-to-end refinement pipeline driven by config.yaml.
+
+    Args:
+        config_path: Path to YAML config.
+
+    Returns:
+        tuple[pd.DataFrame, pd.DataFrame]:
+            - model_performance table
+            - coefficient comparison table
+    """
+    config = load_config(config_path)
+    (
+        processed_data_path,
+        model_performance_path,
+        coefficient_comparison_path,
+    ) = resolve_project_paths(config, config_path)
+
+    duration_col = config["target"]["duration_col"]
+    event_col = config["target"]["event_col"]
+    test_size = config["split"]["test_size"]
+    random_state = config["split"]["random_state"]
+    baseline_penalizer = config["model"]["baseline"]["penalizer"]
+    penalized_penalizer = config["model"]["penalized"]["penalizer"]
+
+    model_performance, comparison_df = run_refinement_pipeline(
+        file_path=processed_data_path,
+        test_size=test_size,
+        random_state=random_state,
+        penalizer=penalized_penalizer,
+        duration_col=duration_col,
+        event_col=event_col,
+        baseline_penalizer=baseline_penalizer,
+    )
+
+    save_model_outputs(
+        model_performance=model_performance,
+        comparison_df=comparison_df,
+        model_performance_path=model_performance_path,
+        coefficient_comparison_path=coefficient_comparison_path,
     )
 
     return model_performance, comparison_df
