@@ -8,7 +8,7 @@ import pandas as pd
 from lifelines import CoxPHFitter
 from sklearn.model_selection import train_test_split
 
-from utils.config import load_config
+from src.utils.config import load_config
 
 
 DEFAULT_RANDOM_STATE = 42
