@@ -24,49 +24,53 @@ This repository focuses on:
 
 ---
 
-## Key Areas
+# 🚀 Highlight Project
 
-### 🔹 Survival Analysis
-- Cox Proportional Hazards Model  
-- Kaplan-Meier Estimation  
-- Time-to-event modeling  
-- Hazard ratio interpretation  
+## Breast Cancer Survival Analysis (METABRIC)
 
----
+An end-to-end survival analysis project using the METABRIC breast cancer clinical dataset.
 
-### 🔹 Statistical Modeling
-- Regression models  
-- Feature significance analysis  
-- Assumption validation  
-- Model diagnostics  
+### Key Components
+- Problem definition and clinical target design  
+- Exploratory Data Analysis (EDA)  
+- Cox-ready feature engineering  
+- Baseline Cox Proportional Hazards modeling  
+- Model evaluation (Concordance Index)  
+- Model refinement with train-validation split  
+- Penalized Cox model comparison  
 
----
+### Project Link
+👉 https://github.com/jjuunnii98/grad-portfolio-ml/tree/main/projects/survival-analysis-breast-cancer
 
-### 🔹 Interpretable Machine Learning
-- Feature importance  
-- Model explainability  
-- Decision-focused modeling  
-- Risk-based interpretation  
-
----
-
-## Project Structure
+### Workflow
 
 ```text
-notebooks/
-├── 01_problem_definition.ipynb
-├── 02_eda.ipynb
-├── 03_modeling.ipynb
-├── 04_evaluation.ipynb
+01_problem_definition.ipynb
+→ 02_eda.ipynb
+→ 03_feature_engineering.ipynb
+→ 04_modeling.ipynb
+→ 05_evaluation.ipynb
+→ 06_model_refinement.ipynb
 ```
 
-Each project follows a research-oriented workflow:
+---
 
+## Repository Structure
 ```
-Problem Definition
-→ Exploratory Data Analysis
-→ Modeling
-→ Evaluation & Interpretation
+projects/
+└── survival-analysis-breast-cancer/
+    ├── README.md
+    ├── configs/
+    ├── data/
+    ├── notebooks/
+    │   ├── 01_problem_definition.ipynb
+    │   ├── 02_eda.ipynb
+    │   ├── 03_feature_engineering.ipynb
+    │   ├── 04_modeling.ipynb
+    │   ├── 05_evaluation.ipynb
+    │   └── 06_model_refinement.ipynb
+    ├── results/
+    └── src/
 ```
 
 ---
@@ -74,21 +78,23 @@ Problem Definition
 ## Methodological Focus
 
 This repository emphasizes:
+
 	•	Statistical rigor over black-box performance
 	•	Interpretability over complexity
 	•	Reproducibility over ad-hoc experimentation
+
 
 ---
 
 ## Relationship to Engineering Projects
 
 This repository complements my main ML engineering projects:
-	•	End-to-End ML Systems
+
+	•	End-to-End ML Analytics System
 	•	Healthcare Risk Prediction API
 	•	Crypto Risk Intelligence Pipeline
 
-While those focus on system implementation,
-this repository focuses on model understanding and research depth.
+While those focus on system implementation, this repository focuses on model understanding and research depth.
 
 ---
 
@@ -98,19 +104,23 @@ this repository focuses on model understanding and research depth.
 	•	scikit-learn
 	•	lifelines (survival analysis)
 	•	statsmodels
+	•	Jupyter Notebook
+	•	Git / GitHub
 
 ---
 
 ## Future Work
 	•	Advanced survival models (time-varying covariates)
 	•	Calibration and model validation techniques
-	•	Interpretable ML frameworks
+	•	Penalized and regularized survival models
 	•	Research paper replication studies
+	•	Transition of notebook logic into reusable src/ modules
+	•	API-oriented deployment experiments for survival risk inference
 
 ---
 
 ## Author
 
-Junyeong Song
+### Junyeong Song
 
-AI Engineer | Machine Learning Systems | Survival Analysis
+#### AI Engineer | Machine Learning Systems | Survival Analysis
